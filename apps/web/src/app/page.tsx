@@ -18,10 +18,16 @@ export default function HomePage() {
               <path d="M16 20h8" stroke="#4edea3" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
-          <h1 className="text-5xl font-bold tracking-tight text-text">
+          <h1
+            className="text-4xl md:text-5xl font-bold tracking-tight text-text text-center"
+            style={{ fontFamily: "'Source Serif 4 Custom', serif" }}
+          >
             LawyaltyAI
           </h1>
-          <p className="mt-3 text-base md:text-lg text-dim text-center leading-relaxed tracking-normal max-w-[32rem] mx-auto">
+          <p
+            className="mt-3 text-base md:text-lg text-dim text-center leading-relaxed max-w-[34rem] mx-auto"
+            style={{ fontFamily: "'Source Serif 4 Custom', serif" }}
+          >
             The Reliable Legal Compass for Your Urban Vision.
           </p>
         </div>
