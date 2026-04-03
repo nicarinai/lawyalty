@@ -30,10 +30,10 @@ export default function HomePage() {
             <span className="text-[58px] md:text-[76px] ml-1">AI</span>
           </h1>
           <p
-            className="mt-4 text-[30px] md:text-[10px] leading-[1.2] tracking-[-0.01em] text-center max-w-[36rem] mx-auto"
+            className="mt-4 text-[20px] md:text-[20px] leading-[1.2] tracking-[-0.01em] text-center max-w-[36rem] mx-auto"
             style={{
               fontFamily: "'Source Serif 4 Custom', serif",
-              color: '#e8dcc7e5',
+              color: '#e8dcc7b2',
             }}
           >
             The Reliable Legal Compass for Your Urban Vision.
