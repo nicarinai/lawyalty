@@ -19,20 +19,21 @@ export default function HomePage() {
             </svg>
           </div>
           <h1
-            className="text-[56px] md:text-[72px] leading-[0.95] font-bold tracking-[-0.03em] text-center"
+            className="text-center leading-[1.08] tracking-[-0.03em]"
             style={{
               fontFamily: "'Source Serif 4 Custom', serif",
               color: '#f2e7d3',
               textShadow: '0 2px 12px rgba(0,0,0,0.28)',
             }}
           >
-            LawyaltyAI
+            <span className="text-[50px] md:text-[64px]">Lawyalty</span>
+            <span className="text-[58px] md:text-[76px] ml-1">AI</span>
           </h1>
           <p
-            className="mt-4 text-[20px] md:text-[26px] leading-[1.2] tracking-[-0.01em] text-center max-w-[36rem] mx-auto"
+            className="mt-4 text-[30px] md:text-[10px] leading-[1.2] tracking-[-0.01em] text-center max-w-[36rem] mx-auto"
             style={{
               fontFamily: "'Source Serif 4 Custom', serif",
-              color: '#e8dcc7',
+              color: '#e8dcc7e5',
             }}
           >
             The Reliable Legal Compass for Your Urban Vision.
