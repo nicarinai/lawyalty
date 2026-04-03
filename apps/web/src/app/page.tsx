@@ -19,10 +19,10 @@ export default function HomePage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-text">
-            Midnight Mermaid
+            LawyaltyAI
           </h1>
           <p className="text-sm text-subtle mt-1 font-mono tracking-wide">
-            collaborative diagram editor
+            The Reliable Legal Compass for Your Urban Vision.
           </p>
         </div>
 
