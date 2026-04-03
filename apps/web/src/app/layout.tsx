@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Midnight Mermaid',
-  description: 'Real-time collaborative Mermaid diagram editor',
+  title: 'LawyaltyAI',
+  description: 'The Reliable Legal Compass for Your Urban Vision.',
 };
 
 export default function RootLayout({
