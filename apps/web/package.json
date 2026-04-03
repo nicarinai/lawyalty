@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3000"
+    "dev": "next dev -p 3000",
+    "start": "next start -p 3000",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@codemirror/commands": "^6.3.2",
@@ -14,12 +18,13 @@
     "@codemirror/state": "^6.4.0",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.22.2",
+    "@opennextjs/cloudflare": "^1.18.0",
     "@uiw/codemirror-theme-vscode": "^4.21.21",
     "@uiw/react-codemirror": "^4.21.21",
     "mermaid": "^10.6.1",
-    "next": "^14.2.35",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "next": "^15.5.14",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
@@ -29,6 +34,7 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^4.80.0"
   }
 }
