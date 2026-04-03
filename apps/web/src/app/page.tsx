@@ -19,14 +19,21 @@ export default function HomePage() {
             </svg>
           </div>
           <h1
-            className="text-4xl md:text-5xl font-bold tracking-tight text-text text-center"
-            style={{ fontFamily: "'Source Serif 4 Custom', serif" }}
+            className="text-[56px] md:text-[72px] leading-[0.95] font-bold tracking-[-0.03em] text-center"
+            style={{
+              fontFamily: "'Source Serif 4 Custom', serif",
+              color: '#f2e7d3',
+              textShadow: '0 2px 12px rgba(0,0,0,0.28)',
+            }}
           >
             LawyaltyAI
           </h1>
           <p
-            className="mt-3 text-base md:text-lg text-dim text-center leading-relaxed max-w-[34rem] mx-auto"
-            style={{ fontFamily: "'Source Serif 4 Custom', serif" }}
+            className="mt-4 text-[20px] md:text-[26px] leading-[1.2] tracking-[-0.01em] text-center max-w-[36rem] mx-auto"
+            style={{
+              fontFamily: "'Source Serif 4 Custom', serif",
+              color: '#e8dcc7',
+            }}
           >
             The Reliable Legal Compass for Your Urban Vision.
           </p>
