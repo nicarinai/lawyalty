@@ -36,7 +36,7 @@ export default function RoomJoinForm() {
       className="bg-panel border border-border rounded-xl p-6 shadow-2xl shadow-black/50"
     >
       <label className="block mb-2">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-subtle block mb-2">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-subtle block mb-2">
           Room Code
         </span>
         <div className="flex gap-2">
@@ -52,7 +52,7 @@ export default function RoomJoinForm() {
             maxLength={8}
             autoComplete="off"
             spellCheck={false}
-            className="flex-1 bg-elevated border border-border rounded-lg px-4 py-2.5 font-mono text-sm text-text placeholder-muted focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-colors uppercase tracking-widest"
+            className="flex-1 bg-elevated border border-border rounded-lg px-4 py-3 font-mono text-base text-text placeholder-muted focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-colors uppercase tracking-[0.15em]"
           />
           <button
             type="submit"
@@ -87,7 +87,7 @@ export default function RoomJoinForm() {
         </div>
       </div>
 
-      <p className="mt-4 text-[10px] font-mono text-muted leading-relaxed">
+      <p className="mt-4 text-xs text-muted leading-relaxed">
         New room code? Just type it — the room is created automatically.
       </p>
     </form>

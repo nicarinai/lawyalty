@@ -8,7 +8,7 @@ export default function HomePage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accentHi/5 blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="relative z-10 w-full max-w-xl px-6">
         {/* Logo mark */}
         <div className="flex flex-col items-center mb-10">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accentHi/30 border border-accent/20 flex items-center justify-center mb-4 shadow-lg shadow-accent/10">
@@ -18,10 +18,10 @@ export default function HomePage() {
               <path d="M16 20h8" stroke="#4edea3" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-text">
+          <h1 className="text-5xl font-bold tracking-tight text-text">
             LawyaltyAI
           </h1>
-          <p className="text-sm text-subtle mt-1 font-mono tracking-wide">
+          <p className="mt-3 text-base md:text-lg text-dim text-center leading-relaxed tracking-normal max-w-[32rem] mx-auto">
             The Reliable Legal Compass for Your Urban Vision.
           </p>
         </div>
