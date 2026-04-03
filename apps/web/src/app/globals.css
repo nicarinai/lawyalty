@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background: #0e0e0e;
+  color: #e5e2e1;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* CodeMirror host element */
+.cm-editor {
+  height: 100% !important;
+  background: transparent !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+}
+
+.cm-editor.cm-focused {
+  outline: none !important;
+}
+
+.cm-gutters {
+  background: rgba(14, 14, 14, 0.6) !important;
+  border-right: 1px solid #2e2d3d !important;
+  color: #464554 !important;
+  min-width: 3rem !important;
+}
+
+.cm-activeLineGutter {
+  background: rgba(192, 193, 255, 0.06) !important;
+  color: #c0c1ff !important;
+}
+
+.cm-activeLine {
+  background: rgba(192, 193, 255, 0.04) !important;
+}
+
+.cm-selectionBackground,
+.cm-focused .cm-selectionBackground {
+  background: rgba(128, 131, 255, 0.25) !important;
+}
+
+.cm-cursor {
+  border-left-color: #c0c1ff !important;
+}
+
+.cm-scroller {
+  overflow: auto !important;
+}
+
+/* Mermaid diagram override for dark theme */
+.mermaid svg {
+  background: transparent !important;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2e2d3d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #464554;
+}
+
+/* Dot-grid background for preview pane */
+.dot-grid {
+  background-image: radial-gradient(circle, #252525 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Glow effect for connected status */
+.glow-green {
+  box-shadow: 0 0 8px #4edea3;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.cursor-blink { animation: blink 1.2s step-start infinite; }
