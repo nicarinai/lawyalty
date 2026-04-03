@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { useSocket } from '@/hooks/useSocket';
 
-// Dynamically import heavy client-only components to avoid SSR
 const EditorPanel = dynamic(() => import('@/components/EditorPanel'), {
   ssr: false,
   loading: () => (
@@ -34,8 +33,20 @@ const DEFAULT_CODE = `flowchart TD
     E --> G([✅ End])`;
 
 export default function RoomPage() {
-  const params = useParams<{ roomId: string }>();
-  const roomId = decodeURIComponent(params.roomId).toUpperCase();
+  const params = useParams();
+  const rawRoomId = Array.isArray(params?.roomId)
+    ? params.roomId[0]
+    : params?.roomId;
+
+  if (!rawRoomId || typeof rawRoomId !== 'string') {
+    return (
+      <div className="h-screen flex items-center justify-center bg-bg text-text">
+        <span className="font-mono text-sm">Loading room…</span>
+      </div>
+    );
+  }
+
+  const roomId = decodeURIComponent(rawRoomId).toUpperCase();
 
   const [code, setCode] = useState(DEFAULT_CODE);
   const [userCount, setUserCount] = useState(1);
@@ -49,12 +60,8 @@ export default function RoomPage() {
       setUserCount(count);
       setConnected(true);
     },
-    onCodeUpdate: (newCode: string) => {
-      setCode(newCode);
-    },
-    onUserCount: (count: number) => {
-      setUserCount(count);
-    },
+    onCodeUpdate: (newCode: string) => setCode(newCode),
+    onUserCount: (count: number) => setUserCount(count),
     onConnect: () => setConnected(true),
     onDisconnect: () => setConnected(false),
   });
@@ -75,125 +82,7 @@ export default function RoomPage() {
 
   return (
     <div className="h-screen flex flex-col bg-bg overflow-hidden">
-      <header className="flex items-center justify-between px-5 h-12 border-b border-border bg-[#0a0a0a] shrink-0 z-20">
-        <div className="flex items-center gap-5">
-          <span className="text-accent font-bold tracking-tight text-sm">
-            🌙 Midnight Mermaid
-          </span>
-          <button
-            onClick={copyRoomCode}
-            title="Click to copy room code"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-elevated border border-border hover:border-accent/40 transition-colors"
-          >
-            <span className="text-[10px] font-mono text-subtle uppercase tracking-widest">room</span>
-            <span className="text-[11px] font-mono font-semibold text-accent tracking-widest">
-              #{roomId}
-            </span>
-            <svg className="w-3 h-3 text-muted ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5 text-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <span className="text-[11px] font-mono text-dim">{userCount}</span>
-            <span className="text-[10px] font-mono text-muted">online</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green glow-green' : 'bg-error'}`} />
-            <span className={`text-[10px] font-mono uppercase tracking-widest ${connected ? 'text-green' : 'text-error'}`}>
-              {connected ? 'Live' : 'Reconnecting'}
-            </span>
-          </div>
-
-          <button
-            onClick={() => setEditorCollapsed(v => !v)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-elevated border border-border hover:border-accent/40 transition-colors text-dim hover:text-accent"
-            title={editorCollapsed ? 'Show editor' : 'Hide editor'}
-          >
-            {editorCollapsed ? (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-                <span className="text-[10px] font-mono">Editor</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10" />
-                </svg>
-                <span className="text-[10px] font-mono">Diagram only</span>
-              </>
-            )}
-          </button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {!editorCollapsed && (
-          <div className="w-[42%] min-w-[280px] flex flex-col border-r border-border bg-panel animate-fade-in">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-[#111] shrink-0">
-              <div className="flex items-center gap-2">
-                <svg className="w-3.5 h-3.5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span className="text-[10px] font-mono text-subtle uppercase tracking-widest">
-                  flowchart.mmd
-                </span>
-              </div>
-              <span className="text-[9px] font-mono text-muted uppercase tracking-widest">
-                mermaid
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-hidden">
-              <EditorPanel code={code} onChange={handleCodeChange} />
-            </div>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-hidden relative dot-grid">
-          <DiagramPreview code={code} />
-        </div>
-      </div>
-
-      <footer className="flex items-center justify-between px-5 h-7 border-t border-border bg-[#0a0a0a] shrink-0">
-        <div className="flex items-center gap-5">
-          <span className="text-[9px] font-mono text-muted uppercase tracking-widest">
-            room #{roomId}
-          </span>
-          <span className="text-[9px] font-mono text-muted">·</span>
-          <span className="text-[9px] font-mono text-subtle">
-            {userCount} {userCount === 1 ? 'collaborator' : 'collaborators'}
-          </span>
-        </div>
-        <div className="flex items-center gap-5">
-          <span className="text-[9px] font-mono text-muted uppercase tracking-widest">
-            Midnight Mermaid MVP
-          </span>
-        </div>
-      </footer>
+      {/* 지금 쓰고 있는 header / main / footer JSX 그대로 */}
     </div>
   );
 }
