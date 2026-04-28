@@ -1,21 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter, Fraunces } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-body',
-});
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  weight: ['700', '800', '900'],
-  variable: '--font-heading',
-});
-
 export const metadata: Metadata = {
-  title: 'Midnight Mermaid',
-  description: 'Real-time collaborative Mermaid diagram editor',
+  title: '라윌티 — 건축·부동산 규제 AI 검토',
+  description: '건축법, 국토계획법, 주택법 등 건축·부동산 규제를 AI로 즉시 검토합니다.',
 };
 
 export default function RootLayout({
@@ -24,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="ko">
       <body>{children}</body>
     </html>
   );
