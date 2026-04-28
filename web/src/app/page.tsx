@@ -1,51 +1,583 @@
-import RoomJoinForm from '@/components/RoomJoinForm';
+'use client';
 
-export default function HomePage() {
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Plus, MessageSquare, Settings, ChevronRight,
+  Send, Paperclip, Scale, BookOpen, FileText,
+  Building2, MapPin, AlertCircle, CheckCircle2,
+  ExternalLink, Menu, X, Sparkles, Clock
+} from 'lucide-react';
+
+// ─── 타입 ────────────────────────────────────────────────────────
+type Role = 'user' | 'ai';
+
+interface Message {
+  id: string;
+  role: Role;
+  content: string;
+  timestamp: string;
+  isTyping?: boolean;
+}
+
+interface ConversationItem {
+  id: string;
+  title: string;
+  preview: string;
+  time: string;
+  category: '건폐율' | '용적률' | '용도지역' | '주차' | '일조권' | '기타';
+}
+
+interface LawRef {
+  title: string;
+  article: string;
+  content: string;
+  tags: string[];
+  important?: boolean;
+}
+
+// ─── 목업 데이터 ─────────────────────────────────────────────────
+const SAMPLE_CONVERSATIONS: ConversationItem[] = [
+  { id: '1', title: '제2종 일반주거지역 건폐율', preview: '최대 60%까지 가능하나 지자체 조례에...', time: '방금 전', category: '건폐율' },
+  { id: '2', title: '근린생활시설 주차 대수 산정', preview: '연면적 134㎡ 초과 시 1대 기준으로...', time: '1시간 전', category: '주차' },
+  { id: '3', title: '역세권 용적률 완화 조건', preview: '역 경계선 250m 이내, 준주거지역 기준...', time: '어제', category: '용적률' },
+  { id: '4', title: '일조권 사선제한 적용 기준', preview: '인접 대지 경계선으로부터 높이에 따라...', time: '2일 전', category: '일조권' },
+  { id: '5', title: '상업지역 용도지역 변경 절차', preview: '도시관리계획 변경 신청 → 주민 열람...', time: '3일 전', category: '용도지역' },
+];
+
+const INITIAL_MESSAGES: Message[] = [
+  {
+    id: 'welcome',
+    role: 'ai',
+    content: '안녕하세요! 라윌티 AI입니다.\n\n건축법, 국토의 계획 및 이용에 관한 법률(국토계획법), 주택법 등 **건축·부동산 관련 규제**를 검토해 드립니다.\n\n어떤 내용이 궁금하신가요? 대지 면적, 위치, 용도 등을 함께 알려주시면 더 정확한 답변을 드릴 수 있습니다.',
+    timestamp: '09:30',
+  },
+  {
+    id: 'q1',
+    role: 'user',
+    content: '서울 강남구 역삼동 소재 대지 500㎡에 근린생활시설을 신축하려고 합니다. 해당 토지가 제2종 일반주거지역인데, 건폐율과 용적률 기준이 어떻게 되나요?',
+    timestamp: '09:31',
+  },
+  {
+    id: 'a1',
+    role: 'ai',
+    content: '역삼동 제2종 일반주거지역 기준으로 말씀드리겠습니다.\n\n**■ 건폐율**\n- 법적 상한: **60% 이하** (국토계획법 제77조, 시행령 별표13)\n- 서울시 조례 적용 시: **60% 이하** 동일 적용\n- 귀하의 대지(500㎡) 기준 최대 건축면적: **300㎡**\n\n**■ 용적률**\n- 법적 상한: 200% 이하 (국토계획법 시행령)\n- 서울시 조례(서울특별시 도시계획 조례 제55조): **200% 이하**\n- 대지(500㎡) 기준 연면적 상한: **1,000㎡**\n\n**■ 추가 검토 필요 사항**\n근린생활시설 신축 시 아래 항목도 반드시 확인하시기 바랍니다.\n1. **주차장**: 연면적 기준 의무 주차 대수 산정 필요\n2. **일조권 사선제한**: 인접 대지 경계선 기준 적용\n3. **도로 사선제한**: 전면 도로 폭 기준 높이 제한\n\n구체적인 건축계획안이 있으시면 더 상세히 검토해 드릴 수 있습니다.',
+    timestamp: '09:31',
+  },
+];
+
+const LAW_REFERENCES: LawRef[] = [
+  {
+    title: '국토의 계획 및 이용에 관한 법률',
+    article: '제77조 (건폐율)',
+    content: '용도지역에서의 건폐율은 다음 각 호의 범위에서 대통령령으로 정하는 기준에 따라 특별시·광역시·특별자치시·특별자치도·시 또는 군의 조례로 정한다.',
+    tags: ['건폐율', '제2종일반주거'],
+    important: true,
+  },
+  {
+    title: '국토계획법 시행령',
+    article: '별표13 (제2종 일반주거지역)',
+    content: '건폐율: 60% 이하 / 용적률: 100% 이상 250% 이하 (조례로 정하는 비율 적용)',
+    tags: ['건폐율', '용적률'],
+    important: true,
+  },
+  {
+    title: '서울특별시 도시계획 조례',
+    article: '제55조 (용적률)',
+    content: '제2종 일반주거지역의 용적률은 200% 이하로 한다. 다만, 역세권 등 특정 구역은 완화 적용 가능.',
+    tags: ['용적률', '서울시'],
+  },
+  {
+    title: '건축법',
+    article: '제53조 (일조 등의 확보)',
+    content: '전용주거지역과 일반주거지역 안에서 건축하는 건축물의 높이는 일조 등의 확보를 위하여 정북방향의 인접 대지 경계선으로부터의 거리에 따라 제한된다.',
+    tags: ['일조권', '높이제한'],
+  },
+];
+
+const CATEGORY_COLORS: Record<ConversationItem['category'], string> = {
+  '건폐율': 'bg-burgundy-100 text-burgundy-600 border-burgundy-200',
+  '용적률': 'bg-amber-50 text-amber-700 border-amber-200',
+  '용도지역': 'bg-blue-50 text-blue-700 border-blue-200',
+  '주차': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  '일조권': 'bg-violet-50 text-violet-700 border-violet-200',
+  '기타': 'bg-gray-50 text-gray-600 border-gray-200',
+};
+
+// ─── 메시지 렌더러 ────────────────────────────────────────────────
+function MessageContent({ content }: { content: string }) {
+  const parts = content.split(/(\*\*[^*]+\*\*)/g);
   return (
-    <main className="h-screen flex items-center justify-center bg-bg dot-grid">
-      {/* Ambient glow */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accentHi/5 blur-3xl" />
-      </div>
+    <p className="whitespace-pre-line text-[15px] leading-[1.75]">
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**') ? (
+          <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </p>
+  );
+}
 
-      <div className="relative z-10 w-full max-w-xl px-6">
-        {/* Logo mark */}
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accentHi/30 border border-accent/20 flex items-center justify-center mb-4 shadow-lg shadow-accent/10">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 4h8v8H4zM16 4h8v8h-8zM4 16h8v8H4z" stroke="#c0c1ff" strokeWidth="1.5" strokeLinejoin="round"/>
-              <path d="M20 16 L24 20 L20 24" stroke="#4edea3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M16 20h8" stroke="#4edea3" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+// ─── 타이핑 인디케이터 ────────────────────────────────────────────
+function TypingIndicator() {
+  return (
+    <div className="flex items-center gap-1.5 px-4 py-3">
+      <div className="typing-dot" />
+      <div className="typing-dot" />
+      <div className="typing-dot" />
+      <span className="ml-1.5 text-xs text-muted-foreground analyzing">
+        법령을 분석하고 있습니다...
+      </span>
+    </div>
+  );
+}
+
+// ─── 메인 컴포넌트 ────────────────────────────────────────────────
+export default function HomePage() {
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [input, setInput] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [activeConv, setActiveConv] = useState('1');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isAnalyzing]);
+
+  function handleSend() {
+    const text = input.trim();
+    if (!text || isAnalyzing) return;
+
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: text,
+      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setIsAnalyzing(true);
+
+    setTimeout(() => {
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: '해당 질의에 대한 법령 검토 결과입니다.\n\n현재 입력하신 내용을 기반으로 관련 법령을 분석하고 있습니다. 실제 서비스에서는 국가법령정보센터 API와 연동하여 정확한 최신 법령 조항을 제공합니다.\n\n**추가 정보를 제공해 주시면** 더 정확한 검토가 가능합니다:\n- 대지 위치 (시/구/동)\n- 용도지역·지구\n- 건축물 용도 및 규모',
+        timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, aiMsg]);
+      setIsAnalyzing(false);
+    }, 2200);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }
+
+  return (
+    <div className="flex h-screen bg-[#FCFBFC] overflow-hidden">
+
+      {/* ── 좌측 내비게이션 바 (LNB) ─────────────────────────── */}
+      <aside
+        className={`
+          flex flex-col bg-[#F8F5F6] border-r border-[#E8D8DB]
+          transition-all duration-300 ease-in-out shrink-0
+          ${sidebarOpen ? 'w-[268px]' : 'w-0 overflow-hidden'}
+        `}
+      >
+        {/* 로고 */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-[#E8D8DB]">
+          <div className="w-8 h-8 rounded-lg bg-[#6B2135] flex items-center justify-center shadow-sm">
+            <Scale className="w-4 h-4 text-white" />
           </div>
-          <h1
-            className="text-center leading-[1.08] tracking-[-0.03em]"
-            style={{
-              fontFamily: "'Source Serif 4 Custom', serif",
-              color: '#f2e7d3',
-              textShadow: '0 2px 12px rgba(0,0,0,0.28)',
-            }}
+          <span className="logo-wordmark text-[19px]">라윌티</span>
+          <span className="ml-auto text-[10px] font-semibold tracking-widest text-[#6B2135] bg-[#F5E6E8] px-2 py-0.5 rounded-full border border-[#E8D8DB]">
+            AI
+          </span>
+        </div>
+
+        {/* 새 검토 시작 버튼 */}
+        <div className="px-4 pt-4 pb-3">
+          <Button
+            className="w-full gap-2 bg-[#6B2135] hover:bg-[#561A2A] text-white text-[14px] font-semibold h-10 rounded-lg shadow-sm"
           >
-            <span className="text-[50px] md:text-[64px]">Lawyalty</span>
-            <span className="text-[58px] md:text-[76px] ml-1">AI</span>
-          </h1>
-          <p
-            className="mt-4 text-[20px] md:text-[20px] leading-[1.2] tracking-[-0.01em] text-center max-w-[36rem] mx-auto"
-            style={{
-              fontFamily: "'Source Serif 4 Custom', serif",
-              color: '#e8dcc7b2',
-            }}
-          >
-            The Reliable Legal Compass for Your Urban Vision.
+            <Plus className="w-4 h-4" />
+            새 검토 시작
+          </Button>
+        </div>
+
+        {/* 최근 검토 목록 */}
+        <div className="px-4 pt-2 pb-1">
+          <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase mb-2 px-1">
+            최근 검토 내역
           </p>
         </div>
 
-        <RoomJoinForm />
+        <ScrollArea className="flex-1 px-2">
+          <div className="space-y-0.5 pb-4">
+            {SAMPLE_CONVERSATIONS.map(conv => (
+              <button
+                key={conv.id}
+                onClick={() => setActiveConv(conv.id)}
+                className={`
+                  w-full text-left px-3 py-3 rounded-lg transition-all group
+                  ${activeConv === conv.id
+                    ? 'nav-active'
+                    : 'hover:bg-[#F5E6E8]/60 text-foreground'}
+                `}
+              >
+                <div className="flex items-start gap-2">
+                  <MessageSquare className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${activeConv === conv.id ? 'text-[#6B2135]' : 'text-muted-foreground'}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className={`
+                        text-[10px] font-semibold px-1.5 py-0.5 rounded-full border
+                        ${CATEGORY_COLORS[conv.category]}
+                      `}>
+                        {conv.category}
+                      </span>
+                    </div>
+                    <p className="text-[13px] font-medium leading-snug truncate">
+                      {conv.title}
+                    </p>
+                    <p className="text-[11.5px] text-muted-foreground truncate mt-0.5">
+                      {conv.preview}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Clock className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-[10.5px] text-muted-foreground">{conv.time}</span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
 
-        <p className="text-center text-xs text-muted mt-6 font-mono">
-          Share the room code with collaborators — no account needed
-        </p>
-      </div>
-    </main>
+        <Separator className="bg-[#E8D8DB]" />
+
+        {/* 하단: 사용자 정보 & 환경설정 */}
+        <div className="px-3 py-3 space-y-1">
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#F5E6E8]/60 transition-colors text-left">
+            <div className="w-8 h-8 rounded-full bg-[#6B2135] flex items-center justify-center shrink-0">
+              <span className="text-[12px] font-semibold text-white">나</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-semibold truncate">나성채 님</p>
+              <p className="text-[11px] text-muted-foreground truncate">공인중개사</p>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto shrink-0" />
+          </button>
+          <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#F5E6E8]/60 transition-colors text-[13px] text-muted-foreground">
+            <Settings className="w-4 h-4" />
+            환경 설정
+          </button>
+        </div>
+      </aside>
+
+      {/* ── 메인 채팅 영역 ─────────────────────────────────────── */}
+      <main className="flex flex-col flex-1 min-w-0 bg-white">
+
+        {/* 채팅 헤더 */}
+        <header className="flex items-center gap-3 px-5 py-4 border-b border-[#E8D8DB] bg-white shrink-0">
+          <button
+            onClick={() => setSidebarOpen(v => !v)}
+            className="p-1.5 rounded-md hover:bg-[#F5E6E8] transition-colors text-muted-foreground"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-[#6B2135] shrink-0" />
+              <h1 className="text-[15px] font-semibold truncate text-foreground">
+                제2종 일반주거지역 건폐율·용적률 검토
+              </h1>
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="flex items-center gap-1 text-[11.5px] text-muted-foreground">
+                <MapPin className="w-3 h-3" />
+                서울 강남구 역삼동
+              </span>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="text-[11.5px] text-muted-foreground">근린생활시설 500㎡</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 text-[12px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+              <CheckCircle2 className="w-3 h-3" />
+              법령 연동 정상
+            </div>
+            <button
+              onClick={() => setInspectorOpen(v => !v)}
+              className="p-1.5 rounded-md hover:bg-[#F5E6E8] transition-colors text-muted-foreground"
+              title="관련 법령 패널"
+            >
+              <BookOpen className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* 메시지 스크롤 영역 */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-5 py-6 space-y-6">
+            {messages.map(msg => (
+              <div
+                key={msg.id}
+                className={`flex gap-3 animate-slide-up ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              >
+                {/* 아바타 */}
+                {msg.role === 'ai' && (
+                  <div className="w-8 h-8 rounded-full bg-[#6B2135] flex items-center justify-center shrink-0 mt-1 shadow-sm">
+                    <Scale className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                {msg.role === 'user' && (
+                  <Avatar className="w-8 h-8 shrink-0 mt-1">
+                    <AvatarFallback className="bg-[#F5E6E8] text-[#6B2135] text-[12px] font-semibold">나</AvatarFallback>
+                  </Avatar>
+                )}
+
+                {/* 말풍선 */}
+                <div className={`max-w-[80%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                  {msg.role === 'ai' && (
+                    <span className="text-[11.5px] font-semibold text-[#6B2135] mb-0.5 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      라윌티 AI
+                    </span>
+                  )}
+                  <div className={`px-4 py-3.5 ${msg.role === 'ai' ? 'bubble-ai' : 'bubble-user'}`}>
+                    <MessageContent content={msg.content} />
+                  </div>
+                  <span className="text-[10.5px] text-muted-foreground px-1">{msg.timestamp}</span>
+                </div>
+              </div>
+            ))}
+
+            {/* 분석 중 인디케이터 */}
+            {isAnalyzing && (
+              <div className="flex gap-3 animate-fade-in">
+                <div className="w-8 h-8 rounded-full bg-[#6B2135] flex items-center justify-center shrink-0 mt-1 shadow-sm">
+                  <Scale className="w-4 h-4 text-white" />
+                </div>
+                <div className="bubble-ai px-1 py-1">
+                  <TypingIndicator />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 빠른 질문 제안 (최초 상태일 때) */}
+        {messages.length <= 1 && (
+          <div className="px-5 pb-3">
+            <div className="max-w-3xl mx-auto">
+              <p className="text-[12px] text-muted-foreground mb-2 font-medium">자주 묻는 질문</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  '건폐율·용적률 확인',
+                  '주차 대수 산정',
+                  '일조권 사선제한',
+                  '용도지역 변경 절차',
+                  '건축허가 서류 목록',
+                ].map(q => (
+                  <button
+                    key={q}
+                    onClick={() => setInput(q)}
+                    className="text-[13px] px-3 py-1.5 rounded-full border border-[#E8D8DB] bg-[#F8F5F6] hover:bg-[#F5E6E8] hover:border-[#6B2135]/30 text-foreground transition-colors"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 입력 영역 */}
+        <div className="px-5 pb-5 pt-3 border-t border-[#E8D8DB] bg-white shrink-0">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex gap-2 items-end bg-white border-2 border-[#E8D8DB] rounded-2xl px-4 py-3 focus-within:border-[#6B2135]/50 transition-colors shadow-sm">
+              <Textarea
+                ref={textareaRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="대지 위치, 용도지역, 건축물 용도 등을 포함하여 질문해 주세요..."
+                className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[44px] max-h-[160px] text-[15px] leading-[1.65] p-0 bg-transparent resize-none placeholder:text-muted-foreground/60"
+                rows={1}
+              />
+              <div className="flex items-center gap-1.5 shrink-0 pb-0.5">
+                <button className="p-2 rounded-lg hover:bg-[#F5E6E8] transition-colors text-muted-foreground">
+                  <Paperclip className="w-4 h-4" />
+                </button>
+                <Button
+                  onClick={handleSend}
+                  disabled={!input.trim() || isAnalyzing}
+                  className="w-9 h-9 p-0 rounded-xl bg-[#6B2135] hover:bg-[#561A2A] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <Send className="w-4 h-4 text-white" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-center text-[11px] text-muted-foreground mt-2.5">
+              라윌티 AI는 법령 정보를 제공하나 법적 효력이 있는 유권해석이 아닙니다. 중요 사항은 담당 기관에 직접 확인하세요.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      {/* ── 우측 인스펙터 패널 ────────────────────────────────── */}
+      <aside
+        className={`
+          flex flex-col bg-[#F8F5F6] border-l border-[#E8D8DB]
+          transition-all duration-300 ease-in-out shrink-0
+          ${inspectorOpen ? 'w-[308px]' : 'w-0 overflow-hidden'}
+        `}
+      >
+        {/* 패널 헤더 */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8D8DB] shrink-0">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-[#6B2135]" />
+            <h2 className="text-[14px] font-semibold text-foreground">관련 법령</h2>
+          </div>
+          <button
+            onClick={() => setInspectorOpen(false)}
+            className="p-1 rounded-md hover:bg-[#F5E6E8] transition-colors text-muted-foreground"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <ScrollArea className="flex-1">
+          <div className="px-4 py-4 space-y-4">
+
+            {/* 검토 요약 카드 */}
+            <Card className="border-[#E8D8DB] shadow-none bg-[#6B2135]">
+              <CardContent className="p-4">
+                <p className="text-[11px] font-semibold text-[#F5E6E8]/70 uppercase tracking-widest mb-2">검토 요약</p>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-[#F5E6E8]">건폐율 상한</span>
+                    <span className="text-[15px] font-bold text-white">60%</span>
+                  </div>
+                  <div className="h-px bg-white/10" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-[#F5E6E8]">용적률 상한</span>
+                    <span className="text-[15px] font-bold text-white">200%</span>
+                  </div>
+                  <div className="h-px bg-white/10" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-[#F5E6E8]">최대 건축면적</span>
+                    <span className="text-[15px] font-bold text-white">300㎡</span>
+                  </div>
+                  <div className="h-px bg-white/10" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-[#F5E6E8]">연면적 상한</span>
+                    <span className="text-[15px] font-bold text-white">1,000㎡</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 법령 근거 목록 */}
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2.5">법령 근거</p>
+              <div className="space-y-2.5">
+                {LAW_REFERENCES.map((law, i) => (
+                  <div
+                    key={i}
+                    className={`
+                      rounded-lg border bg-white p-3.5 transition-colors
+                      ${law.important ? 'border-[#6B2135]/30 law-highlight' : 'border-[#E8D8DB]'}
+                    `}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div>
+                        <p className="text-[11px] text-muted-foreground leading-snug">{law.title}</p>
+                        <p className="text-[13px] font-semibold text-foreground mt-0.5">{law.article}</p>
+                      </div>
+                      {law.important && (
+                        <span className="shrink-0 mt-0.5">
+                          <AlertCircle className="w-3.5 h-3.5 text-[#6B2135]" />
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[12px] text-muted-foreground leading-relaxed">{law.content}</p>
+                    <div className="flex flex-wrap gap-1 mt-2.5">
+                      {law.tags.map(tag => (
+                        <span
+                          key={tag}
+                          className="text-[10.5px] px-2 py-0.5 rounded-full bg-[#F5E6E8] text-[#6B2135] border border-[#E8D8DB] font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <button className="mt-2.5 flex items-center gap-1 text-[11.5px] text-[#6B2135] hover:underline">
+                      <ExternalLink className="w-3 h-3" />
+                      국가법령정보센터에서 보기
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 추가 검토 항목 */}
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2.5">추가 검토 권고</p>
+              <div className="space-y-2">
+                {[
+                  { icon: Building2, label: '주차장 설치 기준', desc: '연면적 기준 의무대수 산정' },
+                  { icon: FileText, label: '건축허가 요건', desc: '건축법 제11조 검토 필요' },
+                  { icon: MapPin, label: '도시계획시설 여부', desc: '도로·공원·학교 저촉 확인' },
+                ].map(item => (
+                  <button
+                    key={item.label}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[#E8D8DB] bg-white hover:bg-[#F5E6E8]/40 hover:border-[#6B2135]/30 transition-colors text-left"
+                  >
+                    <div className="w-7 h-7 rounded-md bg-[#F5E6E8] flex items-center justify-center shrink-0">
+                      <item.icon className="w-3.5 h-3.5 text-[#6B2135]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12.5px] font-semibold text-foreground">{item.label}</p>
+                      <p className="text-[11px] text-muted-foreground">{item.desc}</p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </ScrollArea>
+
+        {/* 법령 업데이트 안내 */}
+        <div className="px-4 py-3 border-t border-[#E8D8DB] shrink-0">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            법령 데이터 최종 동기화: 2026. 4. 29.
+          </div>
+        </div>
+      </aside>
+
+    </div>
   );
 }
