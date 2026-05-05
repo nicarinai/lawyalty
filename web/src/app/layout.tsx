@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { LiquidGlassFilters } from '@/components/LiquidGlassFilters';
 
 export const metadata: Metadata = {
   title: '라윌티 — 건축·부동산 규제 AI 검토',
@@ -13,7 +14,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <LiquidGlassFilters />
+        <div className="bg-orbs" aria-hidden="true">
+          <span className="orb orb-1" />
+          <span className="orb orb-2" />
+          <span className="orb orb-3" />
+          <span className="orb orb-4" />
+        </div>
+        {children}
+      </body>
     </html>
   );
 }

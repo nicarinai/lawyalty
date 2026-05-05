@@ -2,12 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Plus, MessageSquare, Settings, ChevronRight,
   Send, Paperclip, Scale, BookOpen, FileText,
@@ -101,13 +100,14 @@ const LAW_REFERENCES: LawRef[] = [
   },
 ];
 
+// 카테고리 배지 — 모두 화이트 글래스, 텍스트 색만 다르게
 const CATEGORY_COLORS: Record<ConversationItem['category'], string> = {
-  '건폐율': 'bg-burgundy-100 text-burgundy-600 border-burgundy-200',
-  '용적률': 'bg-amber-50 text-amber-700 border-amber-200',
-  '용도지역': 'bg-blue-50 text-blue-700 border-blue-200',
-  '주차': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  '일조권': 'bg-violet-50 text-violet-700 border-violet-200',
-  '기타': 'bg-gray-50 text-gray-600 border-gray-200',
+  '건폐율': 'bg-white/60 text-foreground border-white/85',
+  '용적률': 'bg-white/60 text-amber-700 border-white/85',
+  '용도지역': 'bg-white/60 text-blue-700 border-white/85',
+  '주차': 'bg-white/60 text-emerald-700 border-white/85',
+  '일조권': 'bg-white/60 text-violet-700 border-white/85',
+  '기타': 'bg-white/60 text-muted-foreground border-white/85',
 };
 
 // ─── 메시지 렌더러 ────────────────────────────────────────────────
@@ -191,32 +191,31 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex h-screen bg-[#FCFBFC] overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
 
-      {/* ── 좌측 내비게이션 바 (LNB) ─────────────────────────── */}
+      {/* ── 좌측 내비게이션 바 (LNB) — 리퀴드 글래스 ─────────────── */}
       <aside
         className={`
-          flex flex-col bg-[#F8F5F6] border-r border-[#E8D8DB]
+          liquid-glass-strong
+          flex flex-col rounded-none border-y-0 border-l-0
           transition-all duration-300 ease-in-out shrink-0
           ${sidebarOpen ? 'w-[268px]' : 'w-0 overflow-hidden'}
         `}
       >
         {/* 로고 */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-[#E8D8DB]">
-          <div className="w-8 h-8 rounded-lg bg-[#6B2135] flex items-center justify-center shadow-sm">
-            <Scale className="w-4 h-4 text-white" />
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-[rgba(225,229,236,0.7)]">
+          <div className="w-9 h-9 rounded-xl liquid-glass-strong flex items-center justify-center">
+            <Scale className="w-4 h-4 text-foreground" />
           </div>
           <span className="logo-wordmark text-[19px]">라윌티</span>
-          <span className="ml-auto text-[10px] font-semibold tracking-widest text-[#6B2135] bg-[#F5E6E8] px-2 py-0.5 rounded-full border border-[#E8D8DB]">
+          <Badge variant="secondary" className="ml-auto text-[10px] tracking-widest">
             AI
-          </span>
+          </Badge>
         </div>
 
-        {/* 새 검토 시작 버튼 */}
+        {/* 새 검토 시작 버튼 — 버건디 글래스 CTA */}
         <div className="px-4 pt-4 pb-3">
-          <Button
-            className="w-full gap-2 bg-[#6B2135] hover:bg-[#561A2A] text-white text-[14px] font-semibold h-10 rounded-lg shadow-sm"
-          >
+          <Button size="lg" className="w-full gap-2 font-semibold">
             <Plus className="w-4 h-4" />
             새 검토 시작
           </Button>
@@ -230,7 +229,7 @@ export default function HomePage() {
         </div>
 
         <ScrollArea className="flex-1 px-2">
-          <div className="space-y-0.5 pb-4">
+          <div className="space-y-1 pb-4">
             {SAMPLE_CONVERSATIONS.map(conv => (
               <button
                 key={conv.id}
@@ -239,15 +238,16 @@ export default function HomePage() {
                   w-full text-left px-3 py-3 rounded-lg transition-all group
                   ${activeConv === conv.id
                     ? 'nav-active'
-                    : 'hover:bg-[#F5E6E8]/60 text-foreground'}
+                    : 'hover:bg-white/55 hover:backdrop-blur-md hover:backdrop-saturate-150 text-foreground'}
                 `}
               >
                 <div className="flex items-start gap-2">
-                  <MessageSquare className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${activeConv === conv.id ? 'text-[#6B2135]' : 'text-muted-foreground'}`} />
+                  <MessageSquare className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${activeConv === conv.id ? 'text-foreground' : 'text-muted-foreground'}`} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 mb-1">
                       <span className={`
-                        text-[10px] font-semibold px-1.5 py-0.5 rounded-full border
+                        inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full border
+                        backdrop-blur-md backdrop-saturate-150
                         ${CATEGORY_COLORS[conv.category]}
                       `}>
                         {conv.category}
@@ -270,13 +270,13 @@ export default function HomePage() {
           </div>
         </ScrollArea>
 
-        <Separator className="bg-[#E8D8DB]" />
+        <Separator className="bg-[rgba(232,216,219,0.55)]" />
 
         {/* 하단: 사용자 정보 & 환경설정 */}
         <div className="px-3 py-3 space-y-1">
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#F5E6E8]/60 transition-colors text-left">
-            <div className="w-8 h-8 rounded-full bg-[#6B2135] flex items-center justify-center shrink-0">
-              <span className="text-[12px] font-semibold text-white">나</span>
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/55 hover:backdrop-blur-md hover:backdrop-saturate-150 transition-colors text-left">
+            <div className="w-9 h-9 rounded-full liquid-glass-circle flex items-center justify-center shrink-0">
+              <span className="text-[12px] font-semibold text-foreground">나</span>
             </div>
             <div className="min-w-0">
               <p className="text-[13px] font-semibold truncate">나성채 님</p>
@@ -284,7 +284,7 @@ export default function HomePage() {
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto shrink-0" />
           </button>
-          <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#F5E6E8]/60 transition-colors text-[13px] text-muted-foreground">
+          <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/55 hover:backdrop-blur-md hover:backdrop-saturate-150 transition-colors text-[13px] text-muted-foreground">
             <Settings className="w-4 h-4" />
             환경 설정
           </button>
@@ -292,20 +292,22 @@ export default function HomePage() {
       </aside>
 
       {/* ── 메인 채팅 영역 ─────────────────────────────────────── */}
-      <main className="flex flex-col flex-1 min-w-0 bg-white">
+      <main className="flex flex-col flex-1 min-w-0">
 
-        {/* 채팅 헤더 */}
-        <header className="flex items-center gap-3 px-5 py-4 border-b border-[#E8D8DB] bg-white shrink-0">
-          <button
+        {/* 채팅 헤더 — 얕은 글래스 스트립 */}
+        <header className="liquid-glass-subtle flex items-center gap-3 px-5 py-3.5 rounded-none border-x-0 border-t-0 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
             onClick={() => setSidebarOpen(v => !v)}
-            className="p-1.5 rounded-md hover:bg-[#F5E6E8] transition-colors text-muted-foreground"
           >
             <Menu className="w-4 h-4" />
-          </button>
+          </Button>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#6B2135] shrink-0" />
+              <Building2 className="w-4 h-4 text-foreground shrink-0" />
               <h1 className="text-[15px] font-semibold truncate text-foreground">
                 제2종 일반주거지역 건폐율·용적률 검토
               </h1>
@@ -321,17 +323,19 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1.5 text-[12px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-emerald-700 liquid-glass px-2.5 py-1 rounded-full">
               <CheckCircle2 className="w-3 h-3" />
               법령 연동 정상
-            </div>
-            <button
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
               onClick={() => setInspectorOpen(v => !v)}
-              className="p-1.5 rounded-md hover:bg-[#F5E6E8] transition-colors text-muted-foreground"
               title="관련 법령 패널"
             >
               <BookOpen className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -345,20 +349,20 @@ export default function HomePage() {
               >
                 {/* 아바타 */}
                 {msg.role === 'ai' && (
-                  <div className="w-8 h-8 rounded-full bg-[#6B2135] flex items-center justify-center shrink-0 mt-1 shadow-sm">
-                    <Scale className="w-4 h-4 text-white" />
+                  <div className="w-9 h-9 rounded-full liquid-glass-circle flex items-center justify-center shrink-0 mt-1">
+                    <Scale className="w-4 h-4 text-foreground" />
                   </div>
                 )}
                 {msg.role === 'user' && (
-                  <Avatar className="w-8 h-8 shrink-0 mt-1">
-                    <AvatarFallback className="bg-[#F5E6E8] text-[#6B2135] text-[12px] font-semibold">나</AvatarFallback>
+                  <Avatar className="w-9 h-9 shrink-0 mt-1 liquid-glass-tint">
+                    <AvatarFallback className="bg-transparent text-foreground text-[12px] font-semibold">나</AvatarFallback>
                   </Avatar>
                 )}
 
                 {/* 말풍선 */}
                 <div className={`max-w-[80%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                   {msg.role === 'ai' && (
-                    <span className="text-[11.5px] font-semibold text-[#6B2135] mb-0.5 flex items-center gap-1">
+                    <span className="text-[11.5px] font-semibold text-foreground mb-0.5 flex items-center gap-1">
                       <Sparkles className="w-3 h-3" />
                       라윌티 AI
                     </span>
@@ -374,8 +378,8 @@ export default function HomePage() {
             {/* 분석 중 인디케이터 */}
             {isAnalyzing && (
               <div className="flex gap-3 animate-fade-in">
-                <div className="w-8 h-8 rounded-full bg-[#6B2135] flex items-center justify-center shrink-0 mt-1 shadow-sm">
-                  <Scale className="w-4 h-4 text-white" />
+                <div className="w-9 h-9 rounded-full liquid-glass-circle flex items-center justify-center shrink-0 mt-1">
+                  <Scale className="w-4 h-4 text-foreground" />
                 </div>
                 <div className="bubble-ai px-1 py-1">
                   <TypingIndicator />
@@ -401,7 +405,7 @@ export default function HomePage() {
                   <button
                     key={q}
                     onClick={() => setInput(q)}
-                    className="text-[13px] px-3 py-1.5 rounded-full border border-[#E8D8DB] bg-[#F8F5F6] hover:bg-[#F5E6E8] hover:border-[#6B2135]/30 text-foreground transition-colors"
+                    className="liquid-glass liquid-glass-interactive text-[13px] px-3.5 py-1.5 rounded-full text-foreground"
                   >
                     {q}
                   </button>
@@ -411,29 +415,30 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* 입력 영역 */}
-        <div className="px-5 pb-5 pt-3 border-t border-[#E8D8DB] bg-white shrink-0">
+        {/* 입력 영역 — 글래스 컨테이너 */}
+        <div className="px-5 pb-5 pt-3 shrink-0">
           <div className="max-w-3xl mx-auto">
-            <div className="flex gap-2 items-end bg-white border-2 border-[#E8D8DB] rounded-2xl px-4 py-3 focus-within:border-[#6B2135]/50 transition-colors shadow-sm">
-              <Textarea
+            <div className="liquid-glass-strong flex gap-2 items-end rounded-2xl px-4 py-3 transition-colors focus-within:border-[var(--glass-border-active)]">
+              <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="대지 위치, 용도지역, 건축물 용도 등을 포함하여 질문해 주세요..."
-                className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[44px] max-h-[160px] text-[15px] leading-[1.65] p-0 bg-transparent resize-none placeholder:text-muted-foreground/60"
+                className="flex-1 min-h-[44px] max-h-[160px] text-[15px] leading-[1.65] px-1 py-1 resize-none bg-transparent border-0 outline-none placeholder:text-muted-foreground/70 text-foreground"
                 rows={1}
               />
               <div className="flex items-center gap-1.5 shrink-0 pb-0.5">
-                <button className="p-2 rounded-lg hover:bg-[#F5E6E8] transition-colors text-muted-foreground">
+                <Button variant="ghost" size="icon" className="h-9 w-9">
                   <Paperclip className="w-4 h-4" />
-                </button>
+                </Button>
                 <Button
                   onClick={handleSend}
                   disabled={!input.trim() || isAnalyzing}
-                  className="w-9 h-9 p-0 rounded-xl bg-[#6B2135] hover:bg-[#561A2A] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  size="icon"
+                  className="h-9 w-9 rounded-xl"
                 >
-                  <Send className="w-4 h-4 text-white" />
+                  <Send className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -444,54 +449,57 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* ── 우측 인스펙터 패널 ────────────────────────────────── */}
+      {/* ── 우측 인스펙터 패널 — 리퀴드 글래스 ──────────────────── */}
       <aside
         className={`
-          flex flex-col bg-[#F8F5F6] border-l border-[#E8D8DB]
+          liquid-glass-strong
+          flex flex-col rounded-none border-y-0 border-r-0
           transition-all duration-300 ease-in-out shrink-0
           ${inspectorOpen ? 'w-[308px]' : 'w-0 overflow-hidden'}
         `}
       >
         {/* 패널 헤더 */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8D8DB] shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(225,229,236,0.7)] shrink-0">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#6B2135]" />
+            <BookOpen className="w-4 h-4 text-foreground" />
             <h2 className="text-[14px] font-semibold text-foreground">관련 법령</h2>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
             onClick={() => setInspectorOpen(false)}
-            className="p-1 rounded-md hover:bg-[#F5E6E8] transition-colors text-muted-foreground"
           >
             <X className="w-3.5 h-3.5" />
-          </button>
+          </Button>
         </div>
 
         <ScrollArea className="flex-1">
           <div className="px-4 py-4 space-y-4">
 
-            {/* 검토 요약 카드 */}
-            <Card className="border-[#E8D8DB] shadow-none bg-[#6B2135]">
+            {/* 검토 요약 카드 — 강조 화이트 글래스, 잉크 텍스트 */}
+            <Card variant="burgundy">
               <CardContent className="p-4">
-                <p className="text-[11px] font-semibold text-[#F5E6E8]/70 uppercase tracking-widest mb-2">검토 요약</p>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">검토 요약</p>
                 <div className="space-y-2.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-[13px] text-[#F5E6E8]">건폐율 상한</span>
-                    <span className="text-[15px] font-bold text-white">60%</span>
+                    <span className="text-[13px] text-muted-foreground">건폐율 상한</span>
+                    <span className="text-[17px] font-bold text-foreground tracking-tight">60%</span>
                   </div>
-                  <div className="h-px bg-white/10" />
+                  <div className="h-px bg-[rgba(60,70,90,0.10)]" />
                   <div className="flex justify-between items-center">
-                    <span className="text-[13px] text-[#F5E6E8]">용적률 상한</span>
-                    <span className="text-[15px] font-bold text-white">200%</span>
+                    <span className="text-[13px] text-muted-foreground">용적률 상한</span>
+                    <span className="text-[17px] font-bold text-foreground tracking-tight">200%</span>
                   </div>
-                  <div className="h-px bg-white/10" />
+                  <div className="h-px bg-[rgba(60,70,90,0.10)]" />
                   <div className="flex justify-between items-center">
-                    <span className="text-[13px] text-[#F5E6E8]">최대 건축면적</span>
-                    <span className="text-[15px] font-bold text-white">300㎡</span>
+                    <span className="text-[13px] text-muted-foreground">최대 건축면적</span>
+                    <span className="text-[17px] font-bold text-foreground tracking-tight">300㎡</span>
                   </div>
-                  <div className="h-px bg-white/10" />
+                  <div className="h-px bg-[rgba(60,70,90,0.10)]" />
                   <div className="flex justify-between items-center">
-                    <span className="text-[13px] text-[#F5E6E8]">연면적 상한</span>
-                    <span className="text-[15px] font-bold text-white">1,000㎡</span>
+                    <span className="text-[13px] text-muted-foreground">연면적 상한</span>
+                    <span className="text-[17px] font-bold text-foreground tracking-tight">1,000㎡</span>
                   </div>
                 </div>
               </CardContent>
@@ -502,45 +510,40 @@ export default function HomePage() {
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2.5">법령 근거</p>
               <div className="space-y-2.5">
                 {LAW_REFERENCES.map((law, i) => (
-                  <div
+                  <Card
                     key={i}
-                    className={`
-                      rounded-lg border bg-white p-3.5 transition-colors
-                      ${law.important ? 'border-[#6B2135]/30 law-highlight' : 'border-[#E8D8DB]'}
-                    `}
+                    variant="default"
+                    className={`p-3.5 ${law.important ? 'law-highlight' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[11px] text-muted-foreground leading-snug">{law.title}</p>
                         <p className="text-[13px] font-semibold text-foreground mt-0.5">{law.article}</p>
                       </div>
                       {law.important && (
                         <span className="shrink-0 mt-0.5">
-                          <AlertCircle className="w-3.5 h-3.5 text-[#6B2135]" />
+                          <AlertCircle className="w-3.5 h-3.5 text-foreground" />
                         </span>
                       )}
                     </div>
                     <p className="text-[12px] text-muted-foreground leading-relaxed">{law.content}</p>
                     <div className="flex flex-wrap gap-1 mt-2.5">
                       {law.tags.map(tag => (
-                        <span
-                          key={tag}
-                          className="text-[10.5px] px-2 py-0.5 rounded-full bg-[#F5E6E8] text-[#6B2135] border border-[#E8D8DB] font-medium"
-                        >
+                        <Badge key={tag} variant="secondary" className="text-[10.5px]">
                           {tag}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
-                    <button className="mt-2.5 flex items-center gap-1 text-[11.5px] text-[#6B2135] hover:underline">
+                    <button className="mt-2.5 flex items-center gap-1 text-[11.5px] text-foreground hover:underline">
                       <ExternalLink className="w-3 h-3" />
                       국가법령정보센터에서 보기
                     </button>
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>
 
-            {/* 추가 검토 항목 */}
+            {/* 추가 검토 항목 — 인터랙티브 글래스 */}
             <div>
               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2.5">추가 검토 권고</p>
               <div className="space-y-2">
@@ -551,10 +554,10 @@ export default function HomePage() {
                 ].map(item => (
                   <button
                     key={item.label}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[#E8D8DB] bg-white hover:bg-[#F5E6E8]/40 hover:border-[#6B2135]/30 transition-colors text-left"
+                    className="liquid-glass liquid-glass-interactive w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left"
                   >
-                    <div className="w-7 h-7 rounded-md bg-[#F5E6E8] flex items-center justify-center shrink-0">
-                      <item.icon className="w-3.5 h-3.5 text-[#6B2135]" />
+                    <div className="w-7 h-7 rounded-md liquid-glass-tint flex items-center justify-center shrink-0">
+                      <item.icon className="w-3.5 h-3.5 text-foreground" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[12.5px] font-semibold text-foreground">{item.label}</p>
@@ -570,7 +573,7 @@ export default function HomePage() {
         </ScrollArea>
 
         {/* 법령 업데이트 안내 */}
-        <div className="px-4 py-3 border-t border-[#E8D8DB] shrink-0">
+        <div className="px-4 py-3 border-t border-[rgba(225,229,236,0.7)] shrink-0">
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             법령 데이터 최종 동기화: 2026. 4. 29.

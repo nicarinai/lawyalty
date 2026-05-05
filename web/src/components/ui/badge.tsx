@@ -3,14 +3,23 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  [
+    'inline-flex items-center rounded-full px-2.5 py-0.5',
+    'text-[11px] font-semibold tracking-tight',
+    'transition-colors',
+    'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  ].join(' '),
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive: 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+        // 기본 — 강조 화이트 글래스 (잉크 텍스트)
+        default: 'liquid-glass-burgundy',
+        // 세컨더리 — 실버 틴트 글래스
+        secondary: 'liquid-glass-tint',
+        // 위험 — 화이트 글래스에 레드 텍스트만
+        destructive: 'liquid-glass text-destructive',
+        // 클리어 글래스 아웃라인
+        outline: 'liquid-glass',
       },
     },
     defaultVariants: {
