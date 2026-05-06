@@ -1,0 +1,144 @@
+@import "tailwindcss" source(".");
+
+/* ──────────────────────────────────────────────
+   라윌티 디자인 토큰 — 플래티넘 실버 + 잉크 + 리퀴드 글래스
+   출처: docs/lawyalty/02-auth-ui.md
+   ────────────────────────────────────────────── */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, "Segoe UI", sans-serif;
+
+  /* 잉크 (브랜드 강조) */
+  --color-ink-50:  oklch(0.97 0.005 240);
+  --color-ink-100: oklch(0.93 0.010 240);
+  --color-ink-200: oklch(0.86 0.015 240);
+  --color-ink-300: oklch(0.74 0.022 240);
+  --color-ink-400: oklch(0.55 0.030 240);
+  --color-ink-500: oklch(0.40 0.035 240);
+  --color-ink-600: oklch(0.30 0.040 240);
+  --color-ink-700: oklch(0.24 0.045 240);    /* 잉크 메인 #1E2839 */
+  --color-ink-800: oklch(0.18 0.040 240);
+  --color-ink-900: oklch(0.12 0.030 240);
+
+  /* 실버 (배경/표면) */
+  --color-silver-50:  oklch(0.99 0.002 240); /* #FAFBFD */
+  --color-silver-100: oklch(0.97 0.005 240); /* #F2F4F8 */
+  --color-silver-200: oklch(0.93 0.008 240); /* #E1E5EC */
+  --color-silver-300: oklch(0.86 0.010 240);
+  --color-silver-400: oklch(0.74 0.014 240);
+  --color-silver-500: oklch(0.55 0.018 240);
+
+  /* 라디우스 */
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+}
+
+/* 글래스 토큰 (CSS 변수, Tailwind 외부) */
+:root {
+  --glass-bg:           rgba(255, 255, 255, 0.62);
+  --glass-bg-strong:    rgba(255, 255, 255, 0.78);
+  --glass-bg-subtle:    rgba(255, 255, 255, 0.50);
+  --glass-bg-pink:      rgba(237, 240, 244, 0.70);
+  --glass-bg-burgundy:  rgba(255, 255, 255, 0.86);
+
+  --glass-border:        rgba(255, 255, 255, 0.65);
+  --glass-border-warm:   rgba(225, 229, 236, 0.95);
+  --glass-border-active: rgba(30, 40, 57, 0.40);
+
+  --glass-shadow-sm:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 0 rgba(40, 50, 70, 0.04),
+    0 1px 1px rgba(40, 50, 70, 0.03),
+    0 2px 6px -2px rgba(40, 50, 70, 0.06);
+
+  --glass-shadow-md:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 0 rgba(40, 50, 70, 0.05),
+    0 1px 2px rgba(40, 50, 70, 0.04),
+    0 4px 12px -4px rgba(40, 50, 70, 0.08),
+    0 10px 24px -10px rgba(40, 50, 70, 0.10);
+
+  --glass-shadow-lg:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.75),
+    inset 0 -1px 0 0 rgba(40, 50, 70, 0.06),
+    0 2px 4px rgba(40, 50, 70, 0.05),
+    0 8px 18px -6px rgba(40, 50, 70, 0.10),
+    0 18px 32px -14px rgba(40, 50, 70, 0.12);
+}
+
+/* 배경 색상 적용 */
+html, body {
+  background-color: oklch(from var(--color-silver-50) l c h);
+  color: oklch(from var(--color-ink-700) l c h);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 글래스 유틸리티 */
+@utility liquid-glass {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+@utility liquid-glass-strong {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-md);
+}
+
+@utility liquid-glass-subtle {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--glass-bg-subtle);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid var(--glass-border-warm);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+@utility liquid-glass-tint {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--glass-bg-pink);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--glass-border-warm);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+/* 배경 오브 (글래스 너머 색감) */
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(50px);
+  opacity: 0.55;
+}
+.orb-1 { width: 480px; height: 480px; top: -120px; left: -100px; background: radial-gradient(circle, #C9D7EC 0%, #E5ECF6 60%, transparent 100%); }
+.orb-2 { width: 420px; height: 420px; top: 6%; right: -80px; background: radial-gradient(circle, #E2D8EF 0%, #EFE9F6 60%, transparent 100%); }
+.orb-3 { width: 540px; height: 540px; bottom: -180px; right: 16%; background: radial-gradient(circle, #D6E8E5 0%, #ECF3F1 60%, transparent 100%); }
+.orb-4 { width: 360px; height: 360px; bottom: -60px; left: 10%; background: radial-gradient(circle, #F0E4D2 0%, #F8F1E5 60%, transparent 100%); }
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(60, 70, 90, 0.18); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(60, 70, 90, 0.32); }
