@@ -5,5 +5,10 @@ export default [
   route('login', 'routes/login.tsx'),
   route('signup', 'routes/signup.tsx'),
   route('logout', 'routes/logout.tsx'),
+  route('auth/pending', 'routes/auth.pending.tsx'),
+  route('auth/reset', 'routes/auth.reset.tsx'),
+  route('auth/reset/confirm', 'routes/auth.reset.confirm.tsx'),
+  route('auth/verify', 'routes/auth.verify.tsx'),
+  route('auth/me', 'routes/auth.me.tsx'),
   route('*', 'routes/$.tsx'),
 ] satisfies RouteConfig;

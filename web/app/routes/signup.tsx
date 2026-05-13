@@ -11,6 +11,8 @@ import {
 } from '../lib/server/auth';
 import { Q, type UserRole, type UserRow } from '../lib/server/db';
 import { readSessionCookie } from '../lib/server/session';
+import { issueToken } from '../lib/server/tokens';
+import { makeEmailSender } from '../lib/server/email';
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'lawyer', label: '변호사 · 법무사' },
@@ -128,7 +130,18 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Ac
     metadata: JSON.stringify({ role }),
   });
 
-  // TODO Phase 1.5: 인증 메일 발송 → /auth/verify-email 안내
+  const verifyToken = await issueToken(env.DB, {
+    userId: id,
+    purpose: 'email_verify',
+    ttlMs: 24 * 60 * 60 * 1000,
+  });
+  const verifyLink = `${env.PUBLIC_APP_URL}/auth/verify?token=${verifyToken}`;
+  await makeEmailSender(env).send({
+    to: email,
+    subject: '[라윌티] 이메일 인증',
+    text: `다음 링크로 이메일을 인증하세요 (24시간 유효):\n${verifyLink}`,
+  });
+
   return redirect('/auth/pending');
 }
 
