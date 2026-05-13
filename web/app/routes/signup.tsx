@@ -129,7 +129,7 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Ac
 
   await env.DB
     .prepare(Q.insertUser)
-    .bind(id, email, name, passwordHash, role, 'pending', organization, license_number, now, now)
+    .bind(id, email, name, passwordHash, role, 'active', organization, license_number, now, now)
     .run();
 
   await audit(env.DB, {
@@ -152,7 +152,7 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Ac
     text: `다음 링크로 이메일을 인증하세요 (24시간 유효):\n${verifyLink}`,
   });
 
-  return redirect('/auth/pending');
+  return redirect('/login?signup=1');
 }
 
 export default function Signup({ actionData }: Route.ComponentProps) {
