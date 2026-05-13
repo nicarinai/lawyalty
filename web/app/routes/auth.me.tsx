@@ -1,4 +1,3 @@
-import { redirect, data } from 'react-router';
 import type { Route } from './+types/auth.me';
 import { getSessionUser } from '../lib/server/auth';
 import { readSessionCookie } from '../lib/server/session';
@@ -6,8 +5,13 @@ import { readSessionCookie } from '../lib/server/session';
 export async function loader({ request, context }: Route.LoaderArgs) {
   const token = readSessionCookie(request.headers.get('Cookie'));
   const user = await getSessionUser(context.cloudflare.env.DB, token);
-  if (!user) return redirect('/login');
-  return data({
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  return Response.json({
     id: user.id,
     email: user.email,
     name: user.name,
@@ -19,6 +23,3 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   });
 }
 
-export default function Me() {
-  return null;
-}
