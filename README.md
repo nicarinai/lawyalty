@@ -112,25 +112,36 @@ npm install
 # .dev.vars 작성 (gitignore 됨)
 cat > .dev.vars <<'EOF'
 PUBLIC_APP_URL=http://localhost:5173
-WEBUI_BASE_URL=http://localhost:5174
+WEBUI_BASE_URL=http://localhost:5173
+UPSTREAM_URL=http://localhost:8080
+SSO_SECRET=<infra/.env 와 동일 값>
 EOF
 
 # D1 로컬 마이그레이션
 npx wrangler d1 migrations apply lawyalty-auth --local
 
+# 테스트
+npm test
+
 # dev 서버
 npm run dev
 ```
 
-접속: <http://localhost:5173>
+접속: <http://localhost:5173> — 인증 라우트는 직접 처리, 그 외 경로는
+업스트림(open-webui) 으로 SSO 헤더와 함께 프록시됩니다.
 
-### open-webui (webui 브랜치)
+### open-webui + Postgres (로컬 dev)
 
 ```bash
-git switch webui
+cd infra
+cp .env.example .env
+# .env 에 WEBUI_SECRET_KEY, SSO_SECRET (web/.dev.vars 와 동일 값) 채우기
 docker compose up -d
-# 기본 포트 5174 (혹은 8080) 에서 SvelteKit 접속
 ```
+
+open-webui: <http://localhost:8080> (dev 한정 직접 접속).
+운영 환경에서는 외부에서 게이트웨이 도메인만 노출하고, open-webui 는 내부망에만 두세요.
+fork 빌드 (`webui` 브랜치) 에 HMAC 검증 미들웨어를 포함해 헤더 위조를 차단합니다.
 
 ### 환경 변수
 
@@ -138,7 +149,8 @@ docker compose up -d
 |---|---|---|
 | `PUBLIC_APP_URL` | wrangler / .dev.vars | 라윌티 프론트 자체 URL |
 | `WEBUI_BASE_URL` | wrangler / .dev.vars | 로그인 후 리다이렉트 대상 (홈서버 open-webui) |
-| `SSO_SECRET` | wrangler secret | SSO 헤더 HMAC 서명 키 (Phase 2) |
+| `UPSTREAM_URL` | wrangler / .dev.vars | 게이트웨이 → open-webui 프록시 대상 |
+| `SSO_SECRET` | wrangler secret / .dev.vars | SSO 헤더 HMAC 서명 키 (Worker 와 open-webui fork 가 공유) |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | open-webui | LLM 라우팅 |
 | `LAW_API_KEY` | open-webui | 국가법령정보센터 |
 
@@ -150,8 +162,9 @@ docker compose up -d
 
 - [x] **Phase 0** — 설계 문서, 디자인 시스템, 아키텍처 결정
 - [x] **Phase 1** — 인증 기본기 (login / signup / logout, D1, argon2id, 세션 쿠키)
-- [ ] **Phase 1.5** — 이메일 인증, 비밀번호 재설정, 관리자 승인 패널, /auth/me
-- [ ] **Phase 2** — SSO 헤더 브릿지 (HMAC + IP 화이트리스트)
+- [x] **Phase 1.5** — 이메일 인증, 비밀번호 재설정, /auth/me, KV 레이트리밋
+- [x] **Phase 2 (Worker 측)** — SSO 헤더 브릿지 (HMAC 서명 + splat 라우트 프록시)
+- [ ] **Phase 2.5 (open-webui 측)** — fork 의 FastAPI HMAC verify 미들웨어 (webui 브랜치)
 - [ ] **Phase 3** — MFA (TOTP)
 - [ ] **Phase 4** — OAuth (Google / Kakao)
 - [ ] **Phase 5** — 법령 RAG 파이프라인 고도화, 시나리오 템플릿

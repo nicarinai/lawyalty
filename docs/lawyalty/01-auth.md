@@ -21,7 +21,7 @@
 2. **세션 = HttpOnly + Secure 쿠키** — JWT 는 쿠키 내부 페이로드. 클라이언트 JS 는 토큰을 절대 보지 않음.
 3. **헤더 위조 방어 다층** — Cloudflare IP 화이트리스트 + 홈서버 방화벽 + 헤더 서명 (HMAC).
 4. **Audit-by-default** — 로그인·로그아웃·권한 변경·실패 시도 모두 D1 audit_log 에 기록. KV 가 아닌 영구 저장.
-5. **Pending 단계 강제** — 신규 가입자는 `status='pending'`. admin 승인까지 채팅·채널·노트 모두 차단.
+5. **가입 즉시 활성화** — 신규 가입자는 `status='active'` (2026-05-06 정책 변경). 가입 시 관리자 승인은 폐기. 대신 **기능 단위 승인** 으로 모델 전환 — 채널 생성/초대/입장 등 협업 액션은 그 기능 자체의 관리자 승인을 거침. `status='pending'` 컬럼과 `/auth/pending`, `/admin` 라우트는 향후 사용 가능한 안전망으로 유지.
 6. **Rate limit 은 KV** — 로그인 5회/15분, 가입 3회/시간/IP, 비밀번호 리셋 3회/시간.
 
 ## 2. D1 스키마
@@ -331,25 +331,35 @@ const routePermissions = {
 
 ## 10. 마이그레이션 / Phase 진행
 
-### Phase 0 (현재)
-- 로컬 dev 에서 open-webui 자체 인증으로 동작 확인
-- 첫 가입자가 admin
+### Phase 1 ✅ (완료)
+- D1 마이그레이션 (`web/migrations/0001_init.sql`)
+- React Router 7 `/login`, `/signup`, `/logout` + argon2id + 세션 쿠키
+- 로컬 wrangler dev 환경
 
-### Phase 1
-- D1 마이그레이션 작성 (`migrations/001_init.sql`)
-- SvelteKit `/auth/login`, `/auth/signup` 라우트 + D1 binding
-- 로컬 wrangler dev 환경에서 테스트
+### Phase 1.5 ✅ (완료, 2026-05-06)
+- 이메일 인증 (`/auth/verify`) + 회원가입 시 토큰 발급
+- 비밀번호 재설정 (`/auth/reset`, `/auth/reset/confirm`) — 30분 만료, 1회 사용, 성공 시 전 세션 revoke
+- `/auth/me` JSON 리소스 라우트
+- KV 레이트리밋 (login 5/15min/(ip,email), signup 3/h/ip, pw_reset 3/h/ip)
+- 메일 발송은 dev 콘솔 → 운영 시 Resend/SES 연동 (TODO)
 
-### Phase 2
-- Cloudflare Worker 프록시 + SSO 헤더 주입
-- 홈서버 측 HMAC verify middleware 추가
-- 자체 가입/로그인 차단 (`ENABLE_SIGNUP=false`)
+### Phase 2 (Worker 측) ✅ (완료, 2026-05-06)
+- `web/app/routes/$.tsx` splat 라우트가 D1 세션 검증 후 open-webui 로 프록시
+- `X-Forwarded-Email/User/Groups` + HMAC 서명 + timestamp 주입
+- `infra/docker-compose.yml` — postgres 16 + open-webui (TRUSTED_EMAIL_HEADER 모드)
+- 자체 가입/로그인 차단 (`ENABLE_SIGNUP=false`, `ENABLE_LOGIN_FORM=false`)
 
-### Phase 3
-- 권한 매트릭스 enforcement
+### Phase 2.5 (open-webui 측, webui 브랜치)
+- FastAPI HMAC verify 미들웨어 (`infra/openwebui/sso_signature.py` 참고 구현)
+- Cloudflare IP 화이트리스트 (FORWARDED_ALLOW_IPS)
+- fork 이미지 빌드 후 `infra/docker-compose.yml` 의 image 교체
+
+### Phase 3 (향후)
+- 권한 매트릭스 enforcement (라우트 가드 + 데이터 스코프)
 - audit log 대시보드
-- MFA 도입
+- MFA (TOTP) 도입
+- 채널/노트 등 **기능 단위 관리자 승인** (가입 시 승인은 폐기)
 
-### Phase 4
-- OAuth (Google · Kakao)
+### Phase 4 (향후)
+- OAuth (Google · Kakao · Naver)
 - 그룹 기능
