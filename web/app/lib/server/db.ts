@@ -39,6 +39,17 @@ export interface SessionRow {
   revoked_at: number | null;
 }
 
+export type TokenPurpose = 'email_verify' | 'pw_reset' | 'magic_link';
+
+export interface OneTimeTokenRow {
+  token_hash: string;
+  user_id: string;
+  purpose: TokenPurpose;
+  expires_at: number;
+  used_at: number | null;
+  created_at: number;
+}
+
 export interface AuditLogRow {
   user_id: string | null;
   action: string;
@@ -105,6 +116,19 @@ export const Q = {
   revokeAllUserSessions: `
     UPDATE sessions SET revoked_at = ?
     WHERE user_id = ? AND revoked_at IS NULL
+  `,
+
+  // one-time tokens
+  insertOneTimeToken: `
+    INSERT INTO one_time_tokens (token_hash, user_id, purpose, expires_at, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `,
+  selectOneTimeTokenByHash: `
+    SELECT * FROM one_time_tokens WHERE token_hash = ? LIMIT 1
+  `,
+  consumeOneTimeToken: `
+    UPDATE one_time_tokens SET used_at = ?
+    WHERE token_hash = ? AND used_at IS NULL
   `,
 
   // audit

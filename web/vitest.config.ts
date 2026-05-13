@@ -1,5 +1,8 @@
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
+
+const migrations = await readD1Migrations(path.resolve(__dirname, 'migrations'));
 
 export default defineConfig({
   plugins: [
@@ -7,6 +10,7 @@ export default defineConfig({
       wrangler: { configPath: './wrangler.jsonc' },
       miniflare: {
         compatibilityFlags: ['nodejs_compat'],
+        bindings: { TEST_MIGRATIONS: migrations },
       },
     }),
   ],
