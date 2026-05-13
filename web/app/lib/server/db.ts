@@ -118,6 +118,21 @@ export const Q = {
     WHERE user_id = ? AND revoked_at IS NULL
   `,
 
+  // admin
+  listUsersByStatus: `
+    SELECT id, email, name, role, status, organization, license_number,
+           created_at, email_verified_at
+    FROM users
+    WHERE (?1 IS NULL OR status = ?1)
+    ORDER BY created_at DESC LIMIT 200
+  `,
+  updateUserStatus: `
+    UPDATE users SET status = ?, updated_at = ? WHERE id = ?
+  `,
+  updateUserRole: `
+    UPDATE users SET role = ?, updated_at = ? WHERE id = ?
+  `,
+
   // one-time tokens
   insertOneTimeToken: `
     INSERT INTO one_time_tokens (token_hash, user_id, purpose, expires_at, created_at)

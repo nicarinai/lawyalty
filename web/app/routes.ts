@@ -10,5 +10,7 @@ export default [
   route('auth/reset/confirm', 'routes/auth.reset.confirm.tsx'),
   route('auth/verify', 'routes/auth.verify.tsx'),
   route('auth/me', 'routes/auth.me.tsx'),
+  route('admin', 'routes/admin._index.tsx'),
+  route('admin/users/:id', 'routes/admin.users.$id.tsx'),
   route('*', 'routes/$.tsx'),
 ] satisfies RouteConfig;
