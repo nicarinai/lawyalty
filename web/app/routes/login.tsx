@@ -17,6 +17,7 @@ import {
   buildSessionCookie,
   readSessionCookie,
 } from '../lib/server/session';
+import { rateLimit } from '../lib/server/ratelimit';
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const token = readSessionCookie(request.headers.get('Cookie'));
@@ -42,6 +43,19 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Ac
 
   if (!email || !password) {
     return { error: '이메일과 비밀번호를 입력해 주세요.', values: { email } };
+  }
+
+  const rl = await rateLimit(env.KV, {
+    key: `login:${ip ?? 'noip'}:${email}`,
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!rl.allowed) {
+    const mins = Math.ceil(rl.retryAfterSec / 60);
+    return {
+      error: `너무 많은 시도가 있었습니다. ${mins}분 후 다시 시도해 주세요.`,
+      values: { email },
+    };
   }
 
   const user = await env.DB

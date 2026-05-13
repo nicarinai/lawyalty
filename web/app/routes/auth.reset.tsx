@@ -7,12 +7,21 @@ import { Q, type UserRow } from '../lib/server/db';
 import { issueToken } from '../lib/server/tokens';
 import { makeEmailSender } from '../lib/server/email';
 import { audit } from '../lib/server/auth';
+import { rateLimit } from '../lib/server/ratelimit';
 
 export async function action({ request, context }: Route.ActionArgs) {
   const env = context.cloudflare.env;
+  const ip = request.headers.get('CF-Connecting-IP');
   const form = await request.formData();
   const email = String(form.get('email') ?? '').trim().toLowerCase();
   if (!email) return { ok: true };
+
+  const rl = await rateLimit(env.KV, {
+    key: `pwreset:${ip ?? 'noip'}`,
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rl.allowed) return { ok: true };
 
   const user = await env.DB.prepare(Q.selectUserByEmail).bind(email).first<UserRow>();
   if (user && user.status !== 'suspended' && user.status !== 'deleted') {

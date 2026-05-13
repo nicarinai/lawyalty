@@ -13,6 +13,7 @@ import { Q, type UserRole, type UserRow } from '../lib/server/db';
 import { readSessionCookie } from '../lib/server/session';
 import { issueToken } from '../lib/server/tokens';
 import { makeEmailSender } from '../lib/server/email';
+import { rateLimit } from '../lib/server/ratelimit';
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'lawyer', label: '변호사 · 법무사' },
@@ -67,6 +68,15 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Ac
 
   const errors: FieldErrors = {};
   const values = { name, email, role, organization: organization ?? '', license_number: license_number ?? '' };
+
+  const rl = await rateLimit(env.KV, {
+    key: `signup:${ip ?? 'noip'}`,
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rl.allowed) {
+    return { errors: { general: '잠시 후 다시 시도해 주세요.' }, values };
+  }
 
   if (!name || name.length < 2 || name.length > 30) {
     errors.name = '이름은 2자 이상 30자 이하로 입력해 주세요.';
