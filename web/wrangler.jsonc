@@ -7,8 +7,10 @@
 
   "vars": {
     "PUBLIC_APP_URL": "http://localhost:5173",
-    "WEBUI_BASE_URL": "https://app.lawyalty.com"
+    "WEBUI_BASE_URL": "http://localhost:5173",
+    "UPSTREAM_URL": "http://localhost:8080"
   },
+  // SSO_SECRET 은 secret (로컬: web/.dev.vars, prod: `wrangler secret put SSO_SECRET`)
 
   "d1_databases": [
     {

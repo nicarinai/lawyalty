@@ -1,14 +1,18 @@
-import { Link, redirect } from 'react-router';
+import { Link } from 'react-router';
 import type { Route } from './+types/_index';
 import { getSessionUser } from '../lib/server/auth';
 import { readSessionCookie } from '../lib/server/session';
+import { proxyToWebui } from '../lib/server/proxy';
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const env = context.cloudflare.env;
   const token = readSessionCookie(request.headers.get('Cookie'));
-  const user = await getSessionUser(context.cloudflare.env.DB, token);
+  const user = await getSessionUser(env.DB, token);
   if (user) {
-    // 로그인 상태면 webui 로
-    return redirect(context.cloudflare.env.WEBUI_BASE_URL ?? '/login');
+    return proxyToWebui(request, user, {
+      upstreamUrl: env.UPSTREAM_URL,
+      ssoSecret: env.SSO_SECRET,
+    });
   }
   return null;
 }
